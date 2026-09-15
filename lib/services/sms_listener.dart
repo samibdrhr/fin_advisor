@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../models/sms_message.dart';
+import '../models/transaction.dart';
 import '../services/sms_service.dart';
 import '../widgets/debit_dialog.dart';
 
@@ -22,7 +24,10 @@ class SmsListener {
     if (!hasPermission) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('SMS permission denied. Enable it in settings to auto-import bank messages.')),
+          const SnackBar(
+            content: Text('SMS permission denied. Enable it in settings to auto-import bank messages.'),
+            duration: Duration(seconds: 3),
+          ),
         );
       }
       return;
@@ -42,23 +47,45 @@ class SmsListener {
     }
   }
 
-  /// Show debit dialog and handle the purpose submission
+  /// Show debit dialog and handle the transaction saving
   void _showDebitDialog(BuildContext context, SmsMessage debitMessage) {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => DebitDialog(
+      builder: (dialogContext) => DebitDialog(
         debitMessage: debitMessage,
-        onPurposeSubmitted: (purpose) {
-          // TODO: Save the debit transaction with the purpose to Hive
-          // For now, just print it
-          print('Debit of ${debitMessage.extractAmount()} ETB for: $purpose');
-          
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Transaction saved: $purpose')),
+        onTransactionSaved: (Transaction transaction) {
+          // Transaction is already saved in the dialog
+          // Just log it for now
+          print(
+            'Transaction saved: ${transaction.title} - ETB ${transaction.amount} (Category: ${transaction.categoryId})',
           );
+
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Transaction saved: ${transaction.title}',
+                ),
+                duration: const Duration(seconds: 2),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
         },
       ),
     );
+  }
+
+  /// Listen for new incoming SMS (background mode)
+  void startListeningForNewSms(BuildContext context) {
+    final smsService = SmsService();
+    
+    smsService.onSmsReceived((SmsMessage message) {
+      if (message.isDebitTransaction() && context.mounted) {
+        print('New debit SMS received: ${message.body}');
+        _showDebitDialog(context, message);
+      }
+    });
   }
 }
