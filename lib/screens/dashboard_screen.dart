@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/transaction_provider.dart';
 import '../providers/category_provider.dart';
 import '../providers/goal_provider.dart';
+import '../providers/sms_provider.dart';
 import '../utils/formatters.dart';
 import '../theme/app_theme.dart';
 import '../widgets/transaction_tile.dart';
+import '../widgets/balance_card.dart';
 import 'add_transaction_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -103,10 +105,14 @@ class DashboardScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
 
+            // Bank Balance from SMS
+            const BalanceCard(),
+            const SizedBox(height: 24),
+
             // Goals Preview
-            if (goals.isNotEmpty) ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            if (goals.isNotEmpty) ...["
+              "Row(
+                mainAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     'Savings Goals',
