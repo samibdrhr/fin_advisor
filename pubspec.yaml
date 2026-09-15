@@ -34,6 +34,7 @@ dependencies:
   # SMS (Android only) + Permissions
   permission_handler: ^11.3.1
   flutter_sms_inbox: ^1.0.3
+  telephony: ^0.2.0
 
   # Icons
   cupertino_icons: ^1.0.8
